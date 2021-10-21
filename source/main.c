@@ -14,9 +14,9 @@
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
-#define A (~PINA&0x01)
+#define A (PINA&0x01)
 volatile unsigned char TimerFlag = 0; //TimerISR sets it to 1, programmer sets it to 0
-unsigned long _avr_timer_M = 1; //start count from here, down to 0. Default 1ms
+unsigned long _avr_timer_M = 0; //start count from here, down to 0. Default 1ms
 unsigned long _avr_timer_cntcurr = 0; //current internal count of 1ms ticks
 
 void TimerOn() {
@@ -50,51 +50,51 @@ void TimerSet(unsigned long M) {
 }
 
 enum State {start, downS, upS, downG, upG} state;
-unsigned char a[] = {0x01, 0x02, 0x04, 0x02};
-unsigned char i = 0;
-void Tick() {
-    switch(state) {
-        case start:
-        state = upG;
-        break;
-        case upG:
-        if(A) state = downS;
-        else {
-            state = upG;
-            i = (i+1)%4;
-        }
-        break;
-        case downS:
-        if(A) state = downS;
-        else state = upS;
-        break;
-        case upS:
-        if(A) {
-            state = downG;
-            i=0;
-        }
-        else state = upS;
-        break;
-        case downG:
-        if(A) {
-            state = downG;
-            i = (i+1)%4;
-        }
-        else state = upG;
-    }
-    PORTB = a[i];
-}
+
 
 int main(void) {
     DDRA = 0x00; PORTA = 0xFF;   
     DDRB = 0xFF; PORTB = 0x00;
     TimerSet(300); //1 second
     TimerOn();
-    i = 0;
+  
+    unsigned char a[5] = {1, 2, 4, 2};
+    unsigned char i = 0;
     state = start;
     PORTA = PINA;
     while(1) {
-        Tick();
+        switch(state) {
+            case start:
+            state = upG;
+            i = 0;
+            break;
+            case upG:
+            if(A) state = downS;
+            else {
+                state = upG;
+                i = (i+1)%4;
+            }
+            break;
+            case downS:
+            if(A) state = downS;
+            else state = upS;
+            break;
+            case upS:
+            if(A) {
+                state = downG;
+                i=0;
+            }
+            else state = upS;
+            break;
+            case downG:
+            if(A) {
+                state = downG;
+                i = (i+1)%4;
+            }
+            else state = upG;
+            break;
+        }
+        PORTB = a[i];
         while(!TimerFlag);
         TimerFlag = 0;
     }
