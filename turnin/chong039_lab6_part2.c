@@ -14,7 +14,7 @@
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
-#define A (~PINA&0x01)
+#define A (PINA&0x01)
 volatile unsigned char TimerFlag = 0; //TimerISR sets it to 1, programmer sets it to 0
 unsigned long _avr_timer_M = 1; //start count from here, down to 0. Default 1ms
 unsigned long _avr_timer_cntcurr = 0; //current internal count of 1ms ticks
